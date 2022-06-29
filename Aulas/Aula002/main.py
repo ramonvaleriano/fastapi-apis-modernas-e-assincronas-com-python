@@ -44,8 +44,6 @@ async def get_curso(curso_id: int):
 async def add_curso(curso: CursosModel):
     try:
         next_id = len(cursos) + 1
-        curso = dict(curso)
-        curso.update({'id': next_id})
         cursos[next_id] = curso
 
         return curso
@@ -53,6 +51,18 @@ async def add_curso(curso: CursosModel):
     except Exception as error:
 
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f'Problema ao Inserir dados no banco: {error}')
+
+
+@app.put('/cursos/{curso_id}')
+async def update_curso(curso_id: int, curso: CursosModel):
+    if curso_id in cursos:
+        del curso.id
+        cursos[curso_id] = curso
+
+        return curso
+
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Não exite esse curso para ser atualizado')
 
 if __name__ == '__main__':
     uvicorn.run('main:app', host="0.0.0.0", port=8000, reload=True, debug=True)
