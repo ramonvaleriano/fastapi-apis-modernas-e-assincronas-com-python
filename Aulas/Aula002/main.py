@@ -7,7 +7,8 @@ from fastapi import (
     status,
     #responses,
     Response,
-    Path
+    Path,
+    Query
 )
 
 app = FastAPI()
@@ -89,6 +90,14 @@ async def delete_curso(curso_id: int = Path(default=None, title='ID do curso que
 
 @app.get('/calculadora')
 async def calcular(a: int, b: int, c: Optional[int] = 0):
+
+    soma = a + b + c
+
+    return {'mensagem': soma}
+
+
+@app.get('/calculara2')
+async def calcular2(a: int = Query(default=None, ge=0), b: int = Query(default=None, ge=0), c: Optional[int] = 0):
 
     soma = a + b + c
 
