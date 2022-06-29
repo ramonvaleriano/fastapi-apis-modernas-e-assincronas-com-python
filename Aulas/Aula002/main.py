@@ -1,10 +1,12 @@
 import uvicorn
+from models import CursosModel
 from fastapi import (
     FastAPI,
     HTTPException,
-    status
+    status,
+    #responses,
+    Response
 )
-from models import CursosModel
 
 app = FastAPI()
 
@@ -70,7 +72,8 @@ async def delete_curso(curso_id: int):
     if curso_id in cursos:
         del cursos[curso_id]
 
-        return {'mensagem': 'Curso deletado com sucesso'}
+        #return responses.JSONResponse(status_code=status.HTTP_204_NO_CONTENT, content='Curso apagado com sucesso')
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Não foi encontrado arquivo para se deletar')
 
