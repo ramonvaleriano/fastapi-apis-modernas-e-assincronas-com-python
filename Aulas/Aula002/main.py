@@ -53,7 +53,7 @@ async def add_curso(curso: CursosModel):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f'Problema ao Inserir dados no banco: {error}')
 
 
-@app.put('/cursos/{curso_id}')
+@app.put('/cursos/{curso_id}', status_code=status.HTTP_202_ACCEPTED, tags=['Atualizando curso de forma individual'])
 async def update_curso(curso_id: int, curso: CursosModel):
     if curso_id in cursos:
         del curso.id
@@ -63,6 +63,17 @@ async def update_curso(curso_id: int, curso: CursosModel):
 
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Não exite esse curso para ser atualizado')
+
+
+@app.delete('/cursos/{curso_id}', status_code=status.HTTP_205_RESET_CONTENT, tags=['Deletando curso de forma individual'])
+async def delete_curso(curso_id: int):
+    if curso_id in cursos:
+        del cursos[curso_id]
+
+        return {'mensagem': 'Curso deletado com sucesso'}
+
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Não foi encontrado arquivo para se deletar')
+
 
 if __name__ == '__main__':
     uvicorn.run('main:app', host="0.0.0.0", port=8000, reload=True, debug=True)
