@@ -1,4 +1,5 @@
 import uvicorn
+from typing import Optional
 from models import CursosModel
 from fastapi import (
     FastAPI,
@@ -72,6 +73,11 @@ async def update_curso(curso: CursosModel, curso_id: int = Path(default=None, ti
 @app.delete('/cursos/{curso_id}', status_code=status.HTTP_205_RESET_CONTENT, tags=['Deletando curso de forma individual'])
 async def delete_curso(curso_id: int = Path(default=None, title='ID do curso que deseja deletar',
                                             description='Uso o ID para deletar o curso')):
+    """
+    Usar essa rota apenas no caso de querer deletar um curso\n
+    :param curso_id: ID do curso\n
+    :return: status 204 para o caso de ter sido com sucesso e 404 de ter falho
+    """
     if curso_id in cursos:
         del cursos[curso_id]
 
@@ -79,6 +85,14 @@ async def delete_curso(curso_id: int = Path(default=None, title='ID do curso que
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Não foi encontrado arquivo para se deletar')
+
+
+@app.get('/calculadora')
+async def calcular(a: int, b: int, c: Optional[int] = 0):
+
+    soma = a + b + c
+
+    return {'mensagem': soma}
 
 
 if __name__ == '__main__':
