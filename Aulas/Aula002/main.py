@@ -42,12 +42,17 @@ async def get_curso(curso_id: int):
 
 @app.post('/cursos', status_code=status.HTTP_201_CREATED, tags=['Adicionando um Curso no banco de dados'])
 async def add_curso(curso: CursosModel):
-    if curso.id not in cursos:
-        cursos[curso.id] = curso
+    try:
+        next_id = len(cursos) + 1
+        curso = dict(curso)
+        curso.update({'id': next_id})
+        cursos[next_id] = curso
+
         return curso
 
-    else:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Já existe esse ID no banco')
+    except Exception as error:
+
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f'Problema ao Inserir dados no banco: {error}')
 
 if __name__ == '__main__':
     uvicorn.run('main:app', host="0.0.0.0", port=8000, reload=True, debug=True)
