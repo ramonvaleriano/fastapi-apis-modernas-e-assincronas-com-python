@@ -5,10 +5,10 @@ from fastapi import (
     FastAPI,
     HTTPException,
     status,
-    #responses,
     Response,
     Path,
-    Query
+    Query,
+    Header
 )
 
 app = FastAPI()
@@ -96,12 +96,22 @@ async def calcular(a: int, b: int, c: Optional[int] = 0):
     return {'mensagem': soma}
 
 
-@app.get('/calculara2')
+@app.get('/calculadora2')
 async def calcular2(a: int = Query(default=None, ge=0), b: int = Query(default=None, ge=0), c: Optional[int] = 0):
 
     soma = a + b + c
 
     return {'mensagem': soma}
+
+
+@app.get('/calculadora3')
+async def calculadora3(a: int = Query(default=None, ge=0), b: int = Query(default=None, ge=0),
+                       x_geek: str = Header(default=None), c: Optional[int] = 0):
+
+    soma = a + b + c
+    print(f'Testando header: {x_geek}')
+
+    return {'SomaDoBugulhoDoido': soma}
 
 
 if __name__ == '__main__':
