@@ -5,7 +5,8 @@ from fastapi import (
     HTTPException,
     status,
     #responses,
-    Response
+    Response,
+    Path
 )
 
 app = FastAPI()
@@ -31,8 +32,8 @@ async def get_cursos():
 
 
 @app.get('/cursos/{curso_id}', status_code=status.HTTP_200_OK, tags=['Coletando um Curso especifico'])
-async def get_curso(curso_id: int):
-    print(curso_id)
+async def get_curso(curso_id: int = Path(default=None, title='ID do Curso', description='Deve ser entre 1 e 2',
+                                         gt=0, lt=3)):
     try:
         curso = cursos[curso_id]
         curso.update({'id': curso_id})
@@ -56,7 +57,8 @@ async def add_curso(curso: CursosModel):
 
 
 @app.put('/cursos/{curso_id}', status_code=status.HTTP_202_ACCEPTED, tags=['Atualizando curso de forma individual'])
-async def update_curso(curso_id: int, curso: CursosModel):
+async def update_curso(curso: CursosModel, curso_id: int = Path(default=None, title='ID do curso',
+                                                                description='Adicione o Id que deseja atualizar')):
     if curso_id in cursos:
         del curso.id
         cursos[curso_id] = curso
@@ -68,7 +70,8 @@ async def update_curso(curso_id: int, curso: CursosModel):
 
 
 @app.delete('/cursos/{curso_id}', status_code=status.HTTP_205_RESET_CONTENT, tags=['Deletando curso de forma individual'])
-async def delete_curso(curso_id: int):
+async def delete_curso(curso_id: int = Path(default=None, title='ID do curso que deseja deletar',
+                                            description='Uso o ID para deletar o curso')):
     if curso_id in cursos:
         del cursos[curso_id]
 
