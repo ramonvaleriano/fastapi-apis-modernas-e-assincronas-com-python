@@ -23,7 +23,11 @@ def fake_db():
         sleep(1)
 
 
-app = FastAPI()
+app = FastAPI(
+    title='Api de Cursos',
+    version='0.0.1',
+    description='Uma API para estudo do FastAPI'
+)
 
 cursos = {
     1: {
