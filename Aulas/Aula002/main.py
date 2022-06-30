@@ -1,7 +1,5 @@
 import uvicorn
 from time import sleep
-from typing import Optional, Any
-from models import CursosModel
 from fastapi import (
     FastAPI,
     HTTPException,
@@ -12,6 +10,8 @@ from fastapi import (
     Header,
     Depends
 )
+from models import CursosModel
+from typing import Optional, Any, List
 
 
 def fake_db():
@@ -43,13 +43,18 @@ cursos = {
 }
 
 
-@app.get('/cursos', status_code=status.HTTP_200_OK, tags=['Coletando todos os cursos'])
+@app.get('/cursos', status_code=status.HTTP_200_OK, tags=['Coletando todos os cursos'],
+         description='Rota responsável pela coleta de todos os cursos, ou um lista vazia',
+         summary='Rota com lista de Cursos ou lista Vazia',
+         response_model=List[CursosModel])
 async def get_cursos(db: Any = Depends(fake_db)):
 
     return cursos
 
 
-@app.get('/cursos/{curso_id}', status_code=status.HTTP_200_OK, tags=['Coletando um Curso especifico'])
+@app.get('/cursos/{curso_id}', status_code=status.HTTP_200_OK, tags=['Coletando um Curso especifico'],
+         description='Rota para coletar curso único',
+         summary='Coletar curso por id')
 async def get_curso(curso_id: int = Path(default=None, title='ID do Curso', description='Deve ser entre 1 e 2',
                                          gt=0, lt=3), db: Any = Depends(fake_db)):
     try:
@@ -61,7 +66,9 @@ async def get_curso(curso_id: int = Path(default=None, title='ID do Curso', desc
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Curso não encontrado')
 
 
-@app.post('/cursos', status_code=status.HTTP_201_CREATED, tags=['Adicionando um Curso no banco de dados'])
+@app.post('/cursos', status_code=status.HTTP_201_CREATED, tags=['Adicionando um Curso no banco de dados'],
+          description='Rota responsável por adicionar um novo curso.',
+          summary='Adiconar um curso novo')
 async def add_curso(curso: CursosModel, db: Any = Depends(fake_db)):
     try:
         next_id = len(cursos) + 1
@@ -74,7 +81,9 @@ async def add_curso(curso: CursosModel, db: Any = Depends(fake_db)):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f'Problema ao Inserir dados no banco: {error}')
 
 
-@app.put('/cursos/{curso_id}', status_code=status.HTTP_202_ACCEPTED, tags=['Atualizando curso de forma individual'])
+@app.put('/cursos/{curso_id}', status_code=status.HTTP_202_ACCEPTED, tags=['Atualizando curso de forma individual'],
+         description='Rota responsável por atulizar determinado curso',
+         summary='Atualizar curso')
 async def update_curso(curso: CursosModel, curso_id: int = Path(default=None, title='ID do curso',
                        description='Adicione o Id que deseja atualizar'),
                        db: Any = Depends(fake_db)):
@@ -88,7 +97,8 @@ async def update_curso(curso: CursosModel, curso_id: int = Path(default=None, ti
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Não exite esse curso para ser atualizado')
 
 
-@app.delete('/cursos/{curso_id}', status_code=status.HTTP_205_RESET_CONTENT, tags=['Deletando curso de forma individual'])
+@app.delete('/cursos/{curso_id}', status_code=status.HTTP_205_RESET_CONTENT, tags=['Deletando curso de forma individual'],
+            summary='Deletar um curso')
 async def delete_curso(curso_id: int = Path(default=None, title='ID do curso que deseja deletar',
                        description='Uso o ID para deletar o curso'),
                        db: Any = Depends(fake_db)):
