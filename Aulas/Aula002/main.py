@@ -11,13 +11,13 @@ from fastapi import (
     Depends
 )
 from models import CursosModel
-from typing import Optional, Any, List
+from typing import Optional, Any, List, Dict
 
 
 def fake_db():
     try:
         print('Abrindo Conexão com o banco de dados')
-        sleep(2)
+        sleep(1)
     finally:
         print('Fechando Conexão com o banco de dados')
         sleep(1)
@@ -29,38 +29,32 @@ app = FastAPI(
     description='Uma API para estudo do FastAPI'
 )
 
-cursos = {
-    1: {
-        'titulo': 'Programação para Leigos',
-        'aulas': 112,
-        'horas': 58
-    },
-    2: {
-        'titulo': 'Algoritmo e lógica de programação',
-        'aulas': 87,
-        'horas': 67
-    }
-}
+cursos = [
+    CursosModel(id=1, titulo='Programação para leigos', aulas=42, horas=56),
+    CursosModel(id=2, titulo='Python para todos', aulas=49, horas=45)
+]
 
 
 @app.get('/cursos', status_code=status.HTTP_200_OK, tags=['Coletando todos os cursos'],
          description='Rota responsável pela coleta de todos os cursos, ou um lista vazia',
          summary='Rota com lista de Cursos ou lista Vazia',
-         response_model=List[CursosModel])
+         response_model=list[CursosModel],
+         response_description='Cursos encontrados com sucesso')
 async def get_cursos(db: Any = Depends(fake_db)):
-
     return cursos
 
 
 @app.get('/cursos/{curso_id}', status_code=status.HTTP_200_OK, tags=['Coletando um Curso especifico'],
          description='Rota para coletar curso único',
-         summary='Coletar curso por id')
+         summary='Coletar curso por id',
+         response_model=CursosModel)
 async def get_curso(curso_id: int = Path(default=None, title='ID do Curso', description='Deve ser entre 1 e 2',
                                          gt=0, lt=3), db: Any = Depends(fake_db)):
     try:
-        curso = cursos[curso_id]
-        curso.update({'id': curso_id})
-        return curso
+        for curso in cursos:
+            if curso_id == curso.id:
+                return curso
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Curso não encontrado')
 
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Curso não encontrado')
@@ -68,13 +62,15 @@ async def get_curso(curso_id: int = Path(default=None, title='ID do Curso', desc
 
 @app.post('/cursos', status_code=status.HTTP_201_CREATED, tags=['Adicionando um Curso no banco de dados'],
           description='Rota responsável por adicionar um novo curso.',
-          summary='Adiconar um curso novo')
+          summary='Adiconar um curso novo',
+          response_model=CursosModel)
 async def add_curso(curso: CursosModel, db: Any = Depends(fake_db)):
     try:
         next_id = len(cursos) + 1
-        cursos[next_id] = curso
+        curso_para_add = CursosModel(id=next_id, titulo=curso.titulo, aulas=curso.aulas, horas=curso.horas)
+        cursos.append(curso_para_add)
 
-        return curso
+        return curso_para_add
 
     except Exception as error:
 
@@ -83,15 +79,23 @@ async def add_curso(curso: CursosModel, db: Any = Depends(fake_db)):
 
 @app.put('/cursos/{curso_id}', status_code=status.HTTP_202_ACCEPTED, tags=['Atualizando curso de forma individual'],
          description='Rota responsável por atulizar determinado curso',
-         summary='Atualizar curso')
+         summary='Atualizar curso',
+         response_model=CursosModel)
 async def update_curso(curso: CursosModel, curso_id: int = Path(default=None, title='ID do curso',
                        description='Adicione o Id que deseja atualizar'),
                        db: Any = Depends(fake_db)):
-    if curso_id in cursos:
-        del curso.id
-        cursos[curso_id] = curso
+    id_ = False
+    curso_para_atualizar = None
 
-        return curso
+    for index_, curso_ in enumerate(cursos):
+        if curso_id == curso_.id:
+            curso_para_atualizar = CursosModel(id=curso_id, titulo=curso.titulo, aulas=curso.aulas, horas=curso.horas)
+            id_ = index_
+            break
+
+    if type(id_) == int:
+        cursos[id_] = curso_para_atualizar
+        return curso_para_atualizar
 
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Não exite esse curso para ser atualizado')
@@ -107,9 +111,14 @@ async def delete_curso(curso_id: int = Path(default=None, title='ID do curso que
     :param curso_id: ID do curso\n
     :return: status 204 para o caso de ter sido com sucesso e 404 de ter falho
     """
-    if curso_id in cursos:
-        del cursos[curso_id]
+    id_ = False
 
+    for index_, curso in enumerate(cursos):
+        if curso.id == curso_id:
+            id_ = index_
+
+    if type(id_) == int:
+        del cursos[id_]
         #return responses.JSONResponse(status_code=status.HTTP_204_NO_CONTENT, content='Curso apagado com sucesso')
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
