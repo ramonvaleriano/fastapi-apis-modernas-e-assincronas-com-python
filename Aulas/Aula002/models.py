@@ -38,4 +38,3 @@ class CursosModel(BaseModel):
             raise ValueError('O número do horas tem que ser mais que 10 horas')
 
         return value
-    
